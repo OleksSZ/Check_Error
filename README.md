@@ -76,20 +76,20 @@ python3 oopCheck.py ./my_project/ --max-complexity 6
 
 ## Тестовые скрипты для самопроверки
 
-В папке `test_scripts/` лежат файлы, специально написанные с багами и
+В папке `Error_Scripts/` лежат файлы, специально написанные с багами и
 конструкциями для тестирования конкретных проверок. Полезно после любых
 правок `oopCheck.py` — прогнать их и убедиться, что ничего не сломалось.
 
 | Файл | Что демонстрирует | Как запускать |
 |---|---|---|
-| `1_complexity_game.py` | Цикломатическая сложность: вложенные `if`/`elif` (оружие → враг → доп. условие). Ожидаемый результат: `HIGH-COMPLEXITY`, сложность 8. | `python3 oopCheck.py test_scripts/1_complexity_game.py --max-complexity 5` |
-| `2_cross_file_base.py` + `3_cross_file_child.py` | Межфайловый анализ наследования: родительский класс `Animal` в одном файле, наследник `Dog` — в другом, забыт `super().__init__()`. Плюс класс `DogTest(unittest.TestCase)`, который НЕ должен дать ложных срабатываний (родитель вне проекта). Проверяются **обязательно вместе**, отдельно друг без друга не имеют смысла — без пары чекер не увидит, что `Animal` вообще существует. | `python3 oopCheck.py test_scripts/2_cross_file_base.py test_scripts/3_cross_file_child.py` |
-| `4_general_bugs_demo.py` | Общий "стресс-тест" — почти все проверки сразу в одном файле (21 замечание): мутабельные default-аргументы, class-level мутабельные атрибуты, `except: pass`, `is` для строк, забытый `return`, `__eq__` без `__hash__` и т.д. | `python3 oopCheck.py test_scripts/4_general_bugs_demo.py` |
+| `1_complexity_game.py` | Цикломатическая сложность: вложенные `if`/`elif` (оружие → враг → доп. условие). Ожидаемый результат: `HIGH-COMPLEXITY`, сложность 8. | `python3 oopCheck.py Error_Scripts/1_complexity_game.py --max-complexity 5` |
+| `2_cross_file_base.py` + `3_cross_file_child.py` | Межфайловый анализ наследования: родительский класс `Animal` в одном файле, наследник `Dog` — в другом, забыт `super().__init__()`. Плюс класс `DogTest(unittest.TestCase)`, который НЕ должен дать ложных срабатываний (родитель вне проекта). Проверяются **обязательно вместе**, отдельно друг без друга не имеют смысла — без пары чекер не увидит, что `Animal` вообще существует. | `python3 oopCheck.py Error_Scripts/2_cross_file_base.py Error_Scripts/3_cross_file_child.py` |
+| `4_general_bugs_demo.py` | Общий "стресс-тест" — почти все проверки сразу в одном файле (21 замечание): мутабельные default-аргументы, class-level мутабельные атрибуты, `except: pass`, `is` для строк, забытый `return`, `__eq__` без `__hash__` и т.д. | `python3 oopCheck.py Error_Scripts/4_general_bugs_demo.py` |
 
 Прогнать всё скопом одной командой, с JSON-отчётом в придачу:
 
 ```bash
-python3 oopCheck.py test_scripts/ --json -o test_run.log
+python3 oopCheck.py Error_Scripts/ --json -o test_run.log
 ```
 
 P.s Файлы `2_cross_file_base.py` и `3_cross_file_child.py` — это НЕ рабочая
@@ -172,7 +172,7 @@ P.s Файлы `2_cross_file_base.py` и `3_cross_file_child.py` — это НЕ
 
 ```
 oopCheck.py            — сам анализатор (можно использовать как есть)
-test_scripts/          — тестовые файлы с намеренными багами для самопроверки
+Error_Scripts/          — тестовые файлы с намеренными багами для самопроверки
   1_complexity_game.py
   2_cross_file_base.py
   3_cross_file_child.py
