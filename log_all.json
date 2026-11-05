@@ -1,0 +1,165 @@
+{
+  "files_checked": [
+    "Error_Scripts/1_complexity_game.py",
+    "Error_Scripts/2_cross_file_base.py",
+    "Error_Scripts/3_cross_file_child.py",
+    "Error_Scripts/4_general_bugs_demo.py"
+  ],
+  "total_issues": 22,
+  "issues": [
+    {
+      "file": "Error_Scripts/3_cross_file_child.py",
+      "line": 5,
+      "severity": "OOP",
+      "code": "NO-SUPER-INIT",
+      "message": "Клас 'Dog' успадковується від класу з власним __init__, але свій '__init__' не викликає super().__init__(...) — батьківська частина об'єкта може залишитися неініціалізованою."
+    },
+    {
+      "file": "Error_Scripts/4_general_bugs_demo.py",
+      "line": 13,
+      "severity": "BUG",
+      "code": "ATTR-MISS",
+      "message": "Клас 'shopping_cart': 'self.discounts' читається, але ніде в класі (і його відомих батьківських класах у проєкті) явно не присвоюється — можливий AttributeError під час виконання."
+    },
+    {
+      "file": "Error_Scripts/4_general_bugs_demo.py",
+      "line": 13,
+      "severity": "BUG",
+      "code": "ATTR-MISS",
+      "message": "Клас 'shopping_cart': 'self.items' читається, але ніде в класі (і його відомих батьківських класах у проєкті) явно не присвоюється — можливий AttributeError під час виконання."
+    },
+    {
+      "file": "Error_Scripts/4_general_bugs_demo.py",
+      "line": 13,
+      "severity": "BUG",
+      "code": "ATTR-MISS",
+      "message": "Клас 'shopping_cart': 'self.total' читається, але ніде в класі (і його відомих батьківських класах у проєкті) явно не присвоюється — можливий AttributeError під час виконання."
+    },
+    {
+      "file": "Error_Scripts/4_general_bugs_demo.py",
+      "line": 15,
+      "severity": "BUG",
+      "code": "CLASS-MUT-ATTR",
+      "message": "Клас 'shopping_cart': атрибут 'items' — змінюваний об'єкт (List), оголошений на рівні класу. Він ОДИН на всі екземпляри (класична пастка ООП у Python), а не окремий для кожного об'єкта. Ініціалізуй його в __init__."
+    },
+    {
+      "file": "Error_Scripts/4_general_bugs_demo.py",
+      "line": 16,
+      "severity": "BUG",
+      "code": "CLASS-MUT-ATTR",
+      "message": "Клас 'shopping_cart': атрибут 'discounts' — змінюваний об'єкт (Dict), оголошений на рівні класу. Він ОДИН на всі екземпляри (класична пастка ООП у Python), а не окремий для кожного об'єкта. Ініціалізуй його в __init__."
+    },
+    {
+      "file": "Error_Scripts/4_general_bugs_demo.py",
+      "line": 22,
+      "severity": "BUG",
+      "code": "MUT-DEF",
+      "message": "Функція 'add_item': змінюване значення за замовчуванням (List) — спільний стан між викликами функції."
+    },
+    {
+      "file": "Error_Scripts/4_general_bugs_demo.py",
+      "line": 24,
+      "severity": "BUG",
+      "code": "UNUSED-VAR",
+      "message": "У 'add_item': змінній 'total' присвоюється значення, але далі вона ніде не читається — імовірно, забута логіка або друкарська помилка в імені."
+    },
+    {
+      "file": "Error_Scripts/4_general_bugs_demo.py",
+      "line": 32,
+      "severity": "BUG",
+      "code": "IS-LITERAL",
+      "message": "'is' / 'is not' використовується для порівняння з літералом (число/рядок) — через інтернування в CPython результат непередбачуваний. Використовуй '==' / '!='."
+    },
+    {
+      "file": "Error_Scripts/4_general_bugs_demo.py",
+      "line": 41,
+      "severity": "BUG",
+      "code": "BARE-EXCEPT",
+      "message": "Голий 'except:' перехоплює взагалі все (зокрема KeyboardInterrupt) і маскує справжні баги. Вказуй конкретний тип винятку."
+    },
+    {
+      "file": "Error_Scripts/4_general_bugs_demo.py",
+      "line": 45,
+      "severity": "BUG",
+      "code": "FLOAT-EQ",
+      "message": "Порівняння float через '==' ненадійне через похибки округлення (використовуй abs(a - b) < eps)."
+    },
+    {
+      "file": "Error_Scripts/4_general_bugs_demo.py",
+      "line": 60,
+      "severity": "BUG",
+      "code": "INF-LOOP",
+      "message": "'while True' без 'break' усередині тіла — схоже на потенційно нескінченний цикл."
+    },
+    {
+      "file": "Error_Scripts/4_general_bugs_demo.py",
+      "line": 75,
+      "severity": "BUG",
+      "code": "UNUSED-VAR",
+      "message": "У 'find_user': змінній 'result' присвоюється значення, але далі вона ніде не читається — імовірно, забута логіка або друкарська помилка в імені."
+    },
+    {
+      "file": "Error_Scripts/4_general_bugs_demo.py",
+      "line": 13,
+      "severity": "OOP",
+      "code": "NAMING",
+      "message": "Клас 'shopping_cart': ім'я класу прийнято писати в PascalCase (CapWords)."
+    },
+    {
+      "file": "Error_Scripts/4_general_bugs_demo.py",
+      "line": 35,
+      "severity": "OOP",
+      "code": "NO-SELF",
+      "message": "Метод 'shopping_cart.print_owner': не використовує 'self' — імовірно, варто зробити його @staticmethod."
+    },
+    {
+      "file": "Error_Scripts/4_general_bugs_demo.py",
+      "line": 38,
+      "severity": "OOP",
+      "code": "NO-SELF",
+      "message": "Метод 'shopping_cart.risky_parse': не використовує 'self' — імовірно, варто зробити його @staticmethod."
+    },
+    {
+      "file": "Error_Scripts/4_general_bugs_demo.py",
+      "line": 44,
+      "severity": "OOP",
+      "code": "NO-SELF",
+      "message": "Метод 'shopping_cart.compute_price': не використовує 'self' — імовірно, варто зробити його @staticmethod."
+    },
+    {
+      "file": "Error_Scripts/4_general_bugs_demo.py",
+      "line": 50,
+      "severity": "OOP",
+      "code": "EQ-NO-HASH",
+      "message": "Клас 'PremiumCart': визначено '__eq__', але не '__hash__' — Python зробить об'єкт unhashable (зламається використання в set/dict, якщо раніше працювало)."
+    },
+    {
+      "file": "Error_Scripts/4_general_bugs_demo.py",
+      "line": 51,
+      "severity": "OOP",
+      "code": "NO-SUPER-INIT",
+      "message": "Клас 'PremiumCart' успадковується від класу з власним __init__, але свій '__init__' не викликає super().__init__(...) — батьківська частина об'єкта може залишитися неініціалізованою."
+    },
+    {
+      "file": "Error_Scripts/4_general_bugs_demo.py",
+      "line": 68,
+      "severity": "OOP",
+      "code": "TOO-MANY-ARGS",
+      "message": "Функція/метод 'build_report': 8 параметрів — забагато, складно викликати й тестувати. Розглянь групування в об'єкт/dataclass."
+    },
+    {
+      "file": "Error_Scripts/4_general_bugs_demo.py",
+      "line": 10,
+      "severity": "STYLE",
+      "code": "UNUSED-IMPORT",
+      "message": "Імпорт 're' ніде у файлі не використовується."
+    },
+    {
+      "file": "Error_Scripts/4_general_bugs_demo.py",
+      "line": 30,
+      "severity": "STYLE",
+      "code": "NONE-EQ",
+      "message": "Порівняння з None краще робити через 'is' / 'is not', а не '==' / '!='."
+    }
+  ]
+}

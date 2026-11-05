@@ -1,0 +1,49 @@
+==============================================================================
+ЗВІТ СТАТИЧНОГО АНАЛІЗУ (ООП + потенційні баги)
+==============================================================================
+Перевірено файлів:   4
+Знайдено зауважень:  22
+
+------------------------------------------------------------------------------
+Файл: Error_Scripts/1_complexity_game.py
+------------------------------------------------------------------------------
+  Зауважень не знайдено.
+
+------------------------------------------------------------------------------
+Файл: Error_Scripts/2_cross_file_base.py
+------------------------------------------------------------------------------
+  Зауважень не знайдено.
+
+------------------------------------------------------------------------------
+Файл: Error_Scripts/3_cross_file_child.py
+------------------------------------------------------------------------------
+  [OOP  ] Error_Scripts/3_cross_file_child.py:5     NO-SUPER-INIT Клас 'Dog' успадковується від класу з власним __init__, але свій '__init__' не викликає super().__init__(...) — батьківська частина об'єкта може залишитися неініціалізованою.
+
+------------------------------------------------------------------------------
+Файл: Error_Scripts/4_general_bugs_demo.py
+------------------------------------------------------------------------------
+  [BUG  ] Error_Scripts/4_general_bugs_demo.py:13    ATTR-MISS  Клас 'shopping_cart': 'self.discounts' читається, але ніде в класі (і його відомих батьківських класах у проєкті) явно не присвоюється — можливий AttributeError під час виконання.
+  [BUG  ] Error_Scripts/4_general_bugs_demo.py:13    ATTR-MISS  Клас 'shopping_cart': 'self.items' читається, але ніде в класі (і його відомих батьківських класах у проєкті) явно не присвоюється — можливий AttributeError під час виконання.
+  [BUG  ] Error_Scripts/4_general_bugs_demo.py:13    ATTR-MISS  Клас 'shopping_cart': 'self.total' читається, але ніде в класі (і його відомих батьківських класах у проєкті) явно не присвоюється — можливий AttributeError під час виконання.
+  [BUG  ] Error_Scripts/4_general_bugs_demo.py:15    CLASS-MUT-ATTR Клас 'shopping_cart': атрибут 'items' — змінюваний об'єкт (List), оголошений на рівні класу. Він ОДИН на всі екземпляри (класична пастка ООП у Python), а не окремий для кожного об'єкта. Ініціалізуй його в __init__.
+  [BUG  ] Error_Scripts/4_general_bugs_demo.py:16    CLASS-MUT-ATTR Клас 'shopping_cart': атрибут 'discounts' — змінюваний об'єкт (Dict), оголошений на рівні класу. Він ОДИН на всі екземпляри (класична пастка ООП у Python), а не окремий для кожного об'єкта. Ініціалізуй його в __init__.
+  [BUG  ] Error_Scripts/4_general_bugs_demo.py:22    MUT-DEF    Функція 'add_item': змінюване значення за замовчуванням (List) — спільний стан між викликами функції.
+  [BUG  ] Error_Scripts/4_general_bugs_demo.py:24    UNUSED-VAR У 'add_item': змінній 'total' присвоюється значення, але далі вона ніде не читається — імовірно, забута логіка або друкарська помилка в імені.
+  [BUG  ] Error_Scripts/4_general_bugs_demo.py:32    IS-LITERAL 'is' / 'is not' використовується для порівняння з літералом (число/рядок) — через інтернування в CPython результат непередбачуваний. Використовуй '==' / '!='.
+  [BUG  ] Error_Scripts/4_general_bugs_demo.py:41    BARE-EXCEPT Голий 'except:' перехоплює взагалі все (зокрема KeyboardInterrupt) і маскує справжні баги. Вказуй конкретний тип винятку.
+  [BUG  ] Error_Scripts/4_general_bugs_demo.py:45    FLOAT-EQ   Порівняння float через '==' ненадійне через похибки округлення (використовуй abs(a - b) < eps).
+  [BUG  ] Error_Scripts/4_general_bugs_demo.py:60    INF-LOOP   'while True' без 'break' усередині тіла — схоже на потенційно нескінченний цикл.
+  [BUG  ] Error_Scripts/4_general_bugs_demo.py:75    UNUSED-VAR У 'find_user': змінній 'result' присвоюється значення, але далі вона ніде не читається — імовірно, забута логіка або друкарська помилка в імені.
+  [OOP  ] Error_Scripts/4_general_bugs_demo.py:13    NAMING     Клас 'shopping_cart': ім'я класу прийнято писати в PascalCase (CapWords).
+  [OOP  ] Error_Scripts/4_general_bugs_demo.py:35    NO-SELF    Метод 'shopping_cart.print_owner': не використовує 'self' — імовірно, варто зробити його @staticmethod.
+  [OOP  ] Error_Scripts/4_general_bugs_demo.py:38    NO-SELF    Метод 'shopping_cart.risky_parse': не використовує 'self' — імовірно, варто зробити його @staticmethod.
+  [OOP  ] Error_Scripts/4_general_bugs_demo.py:44    NO-SELF    Метод 'shopping_cart.compute_price': не використовує 'self' — імовірно, варто зробити його @staticmethod.
+  [OOP  ] Error_Scripts/4_general_bugs_demo.py:50    EQ-NO-HASH Клас 'PremiumCart': визначено '__eq__', але не '__hash__' — Python зробить об'єкт unhashable (зламається використання в set/dict, якщо раніше працювало).
+  [OOP  ] Error_Scripts/4_general_bugs_demo.py:51    NO-SUPER-INIT Клас 'PremiumCart' успадковується від класу з власним __init__, але свій '__init__' не викликає super().__init__(...) — батьківська частина об'єкта може залишитися неініціалізованою.
+  [OOP  ] Error_Scripts/4_general_bugs_demo.py:68    TOO-MANY-ARGS Функція/метод 'build_report': 8 параметрів — забагато, складно викликати й тестувати. Розглянь групування в об'єкт/dataclass.
+  [STYLE] Error_Scripts/4_general_bugs_demo.py:10    UNUSED-IMPORT Імпорт 're' ніде у файлі не використовується.
+  [STYLE] Error_Scripts/4_general_bugs_demo.py:30    NONE-EQ    Порівняння з None краще робити через 'is' / 'is not', а не '==' / '!='.
+
+==============================================================================
+Разом за категоріями: BUG=12, OOP=8, STYLE=2
+(BUG = імовірний логічний баг, OOP = порушення принципів ООП, STYLE = стиль)

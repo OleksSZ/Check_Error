@@ -1,22 +1,22 @@
 #!/usr/bin/env python3
 """
-oop_checker.py
+oopCheck.py
 
-Статический анализатор Python-кода:
- - Проверяет базовые принципы ООП (инкапсуляция, размер класса, self-usage,
-   наследование, отсутствующие/"неполные" атрибуты и т.д.)
- - Ищет потенциальные логические баги, которые обычный запуск в терминале
-   не покажет (mutable default args, bare except, сравнение с None через ==,
-   сравнение float через ==, неиспользуемые импорты, потенциально
-   бесконечные циклы, неконсистентные return и т.д.)
- - Поддерживает проверку сразу нескольких файлов
- - Поддерживает проверку целого проекта (директории со структурой пакетов)
- - Пишет результат в checks.log
+Статичний аналізатор Python-коду:
+ - Перевіряє базові принципи ООП (інкапсуляція, розмір класу, використання self,
+   наслідування, відсутні/"неповні" атрибути тощо)
+ - Шукає потенційні логічні баги, які звичайний запуск у терміналі
+   не покаже (mutable default args, bare except, порівняння з None через ==,
+   порівняння float через ==, невикористані імпорти, потенційно
+   нескінченні цикли, неузгоджені return тощо)
+ - Підтримує перевірку одразу кількох файлів
+ - Підтримує перевірку цілого проєкту (директорії зі структурою пакетів)
+ - Записує результат у checks.log
 
-Использование:
-    python oop_checker.py file1.py file2.py
-    python oop_checker.py ./my_project/
-    python oop_checker.py ./my_project/ file1.py --output my_report.log
+Використання:
+    python3 oopCheck.py file1.py file2.py
+    python3 oopCheck.py ./my_project/
+    python3 oopCheck.py ./my_project/ file1.py --output my_report.log
 """
 
 import ast
@@ -30,13 +30,13 @@ from typing import List
 
 BUILTIN_NAMES = set(dir(builtins))
 
-# Границы "своей" области видимости: при обходе тела функции не заходим
-# внутрь вложенных функций/классов - у них будет отдельный обход.
+# Межі "власної" області видимості: під час обходу тіла функції не заходимо
+# всередину вкладених функцій/класів - для них буде окремий обхід.
 _SCOPE_BOUNDARY = (ast.FunctionDef, ast.AsyncFunctionDef, ast.Lambda, ast.ClassDef)
 
 
 def iter_own_scope(node):
-    """Обходит поддерево узла, не спускаясь в тела вложенных функций/классов."""
+    """Обходить піддерево вузла, не спускаючись у тіла вкладених функцій/класів."""
     def _walk(n, top):
         for child in ast.iter_child_nodes(n):
             if not top and isinstance(child, _SCOPE_BOUNDARY):
@@ -64,11 +64,11 @@ class Issue:
 
 @dataclass
 class ClassInfo:
-    """Информация об одном классе для межфайлового анализа наследования."""
+    """Інформація про один клас для міжфайлового аналізу наслідування."""
     name: str
     file: str
     lineno: int
-    bases: list       # имена базовых классов (строки), как они написаны в коде
+    bases: list       # імена базових класів (рядки), як їх записано в коді
     methods: set
     assigned_attrs: set
     has_init: bool
@@ -80,12 +80,12 @@ def _base_names(node: ast.ClassDef):
         if isinstance(b, ast.Name):
             names.append(b.id)
         elif isinstance(b, ast.Attribute):
-            names.append(b.attr)  # module.Class -> берём только "Class"
+            names.append(b.attr)  # module.Class -> беремо лише "Class"
     return names
 
 
 def collect_class_infos(tree: ast.Module, filename: str):
-    """Проход 1: находит все классы файла и их сырую информацию (без наследования)."""
+    """Прохід 1: знаходить усі класи файлу та їхню сиру інформацію (без наслідування)."""
     infos = []
     for node in ast.walk(tree):
         if not isinstance(node, ast.ClassDef):
@@ -109,20 +109,20 @@ def collect_class_infos(tree: ast.Module, filename: str):
 def build_registry(all_infos):
     registry = {}
     for info in all_infos:
-        registry.setdefault(info.name, info)  # первое имя побеждает при коллизии
+        registry.setdefault(info.name, info)  # при колізії перемагає перше ім'я
     return registry
 
 
 def resolve_ancestors(info: ClassInfo, registry: dict, visited=None):
     """
-    Проход 2: рекурсивно поднимается по цепочке наследования через реестр.
-    Возвращает (fully_known, merged_attrs, merged_methods):
-      fully_known=False, если хотя бы один предок не найден в проекте
-      (внешняя библиотека) - в этом случае доверять "объединённым" данным нельзя.
+    Прохід 2: рекурсивно піднімається ланцюжком наслідування через реєстр.
+    Повертає (fully_known, merged_attrs, merged_methods):
+      fully_known=False, якщо хоча б одного предка не знайдено в проєкті
+      (зовнішня бібліотека) - у такому разі "об'єднаним" даним довіряти не можна.
     """
     visited = visited or set()
     if info.name in visited:
-        return True, set(), set()  # защита от циклов в объявлении (A(B) + B(A))
+        return True, set(), set()  # захист від циклів в оголошенні (A(B) + B(A))
     visited.add(info.name)
 
     merged_attrs = set(info.assigned_attrs)
@@ -134,7 +134,7 @@ def resolve_ancestors(info: ClassInfo, registry: dict, visited=None):
             continue
         base_info = registry.get(base_name)
         if base_info is None:
-            fully_known = False  # родитель вне проекта - дальше не доверяем
+            fully_known = False  # батьківський клас поза проєктом - далі не довіряємо
             continue
         sub_known, sub_attrs, sub_methods = resolve_ancestors(base_info, registry, visited)
         fully_known = fully_known and sub_known
@@ -151,13 +151,13 @@ class FileChecker(ast.NodeVisitor):
         self.issues: List[Issue] = []
         self.imported_names = {}   # name -> lineno
         self.used_names = set()
-        self.registry = registry or {}       # project-wide class registry (для cross-file анализа)
+        self.registry = registry or {}       # реєстр класів усього проєкту (для міжфайлового аналізу)
         self.max_complexity = max_complexity
 
     def add(self, node, severity, code, message):
         self.issues.append(Issue(self.filename, getattr(node, "lineno", 0), severity, code, message))
 
-    # ---------- отслеживание использования имён (для unused-import) ----------
+    # ---------- відстеження використання імен (для unused-import) ----------
     def visit_Name(self, node):
         self.used_names.add(node.id)
         self.generic_visit(node)
@@ -176,7 +176,7 @@ class FileChecker(ast.NodeVisitor):
             self.imported_names[name] = node.lineno
         self.generic_visit(node)
 
-    # ---------- функции ----------
+    # ---------- функції ----------
     def visit_FunctionDef(self, node):
         self._check_mutable_defaults(node)
         self._check_return_consistency(node)
@@ -193,8 +193,8 @@ class FileChecker(ast.NodeVisitor):
                 continue
             if isinstance(default, (ast.List, ast.Dict, ast.Set)):
                 self.add(node, "BUG", "MUT-DEF",
-                         f"Функция '{node.name}': изменяемое значение по умолчанию "
-                         f"({type(default).__name__}) — общее состояние между вызовами функции.")
+                         f"Функція '{node.name}': змінюване значення за замовчуванням "
+                         f"({type(default).__name__}) — спільний стан між викликами функції.")
 
     def _check_return_consistency(self, node):
         returns = [n for n in ast.walk(node) if isinstance(n, ast.Return)]
@@ -202,8 +202,8 @@ class FileChecker(ast.NodeVisitor):
         has_empty = any(r.value is None for r in returns)
         if has_value and has_empty:
             self.add(node, "BUG", "RET-MIX",
-                     f"Функция '{node.name}': в одних return есть значение, в других — нет. "
-                     f"Возможна неявная логическая ошибка (случайный None).")
+                     f"Функція '{node.name}': в одних return є значення, в інших — немає. "
+                     f"Можлива неявна логічна помилка (випадковий None).")
 
     def _check_too_many_args(self, node):
         args = node.args.args
@@ -212,8 +212,8 @@ class FileChecker(ast.NodeVisitor):
             count -= 1
         if count > 6:
             self.add(node, "OOP", "TOO-MANY-ARGS",
-                     f"Функция/метод '{node.name}': {count} параметров — слишком много, "
-                     f"сложно вызывать и тестировать. Рассмотри группировку в объект/dataclass.")
+                     f"Функція/метод '{node.name}': {count} параметрів — забагато, "
+                     f"складно викликати й тестувати. Розглянь групування в об'єкт/dataclass.")
 
     def _check_unused_locals(self, node):
         assigned = {}
@@ -228,15 +228,15 @@ class FileChecker(ast.NodeVisitor):
         for name, lineno in assigned.items():
             if name not in read:
                 self.issues.append(Issue(self.filename, lineno, "BUG", "UNUSED-VAR",
-                                          f"В '{node.name}': переменная '{name}' присваивается, но "
-                                          f"нигде дальше не читается — вероятно, забытая логика или опечатка в имени."))
+                                          f"У '{node.name}': змінній '{name}' присвоюється значення, але "
+                                          f"далі вона ніде не читається — імовірно, забута логіка або друкарська помилка в імені."))
 
     def _check_complexity(self, node):
         """
-        Цикломатическая сложность (McCabe): 1 (базовый путь через функцию) +
-        1 за каждую точку ветвления (if/elif, for, while, except, and/or,
-        тернарник, условие в comprehension, case в match).
-        Вложенные функции/классы считаются отдельно, в общий счёт не идут.
+        Цикломатична складність (McCabe): 1 (базовий шлях через функцію) +
+        1 за кожну точку розгалуження (if/elif, for, while, except, and/or,
+        тернарний оператор, умова в comprehension, case у match).
+        Вкладені функції/класи рахуються окремо, до загального рахунку не входять.
         """
         complexity = 1
         for n in iter_own_scope(node):
@@ -249,20 +249,20 @@ class FileChecker(ast.NodeVisitor):
             elif isinstance(n, ast.comprehension):
                 complexity += 1 + len(n.ifs)
             elif n.__class__.__name__ == "Match":
-                pass  # сами case ниже
+                pass  # самі case нижче
             elif n.__class__.__name__ == "match_case":
-                # исключаем "case _:" (wildcard, не считается веткой-решением)
+                # виключаємо "case _:" (wildcard, не вважається гілкою-рішенням)
                 pattern = getattr(n, "pattern", None)
                 if not (pattern is not None and pattern.__class__.__name__ == "MatchAs" and pattern.pattern is None):
                     complexity += 1
 
         if complexity > self.max_complexity:
             self.add(node, "BUG", "HIGH-COMPLEXITY",
-                     f"Функция '{node.name}': цикломатическая сложность {complexity} "
-                     f"(порог {self.max_complexity}) — слишком много независимых путей выполнения, "
-                     f"сложно покрыть тестами и легко пропустить баг в редкой ветке.")
+                     f"Функція '{node.name}': цикломатична складність {complexity} "
+                     f"(поріг {self.max_complexity}) — забагато незалежних шляхів виконання, "
+                     f"складно покрити тестами й легко пропустити баг у рідкісній гілці.")
 
-    # ---------- классы / ООП ----------
+    # ---------- класи / ООП ----------
     def visit_ClassDef(self, node):
         self._check_class(node)
         self.generic_visit(node)
@@ -272,19 +272,19 @@ class FileChecker(ast.NodeVisitor):
         method_names = {m.name for m in methods}
         has_init = "__init__" in method_names
 
-        # 1. Именование класса (PascalCase)
+        # 1. Іменування класу (PascalCase)
         if not node.name[:1].isupper() or "_" in node.name:
             self.add(node, "OOP", "NAMING",
-                     f"Класс '{node.name}': имя класса принято писать в PascalCase (CapWords).")
+                     f"Клас '{node.name}': ім'я класу прийнято писати в PascalCase (CapWords).")
 
-        # 2. God-class эвристика (нарушение Single Responsibility)
+        # 2. Евристика God-class (порушення Single Responsibility)
         if len(methods) > 15:
             self.add(node, "OOP", "GOD-CLASS",
-                     f"Класс '{node.name}': {len(methods)} методов — вероятно, класс делает "
-                     f"слишком много (нарушение Single Responsibility Principle).")
+                     f"Клас '{node.name}': {len(methods)} методів — імовірно, клас робить "
+                     f"забагато (порушення Single Responsibility Principle).")
 
-        # 3. self.attr: читается vs присваивается (энкапсуляция / потенциальный AttributeError).
-        # Учитываем атрибуты, унаследованные из родителей по всему проекту (см. resolve_ancestors).
+        # 3. self.attr: читається vs присвоюється (інкапсуляція / потенційний AttributeError).
+        # Враховуємо атрибути, успадковані від батьків у всьому проєкті (див. resolve_ancestors).
         assigned_attrs, read_attrs = set(), set()
         for m in methods:
             for n in ast.walk(m):
@@ -299,20 +299,20 @@ class FileChecker(ast.NodeVisitor):
         if my_info is not None and my_info.bases:
             inherited_known, inherited_attrs, inherited_methods = resolve_ancestors(my_info, self.registry)
 
-        if inherited_known:  # если хоть один родитель "не виден" - не рискуем ложным срабатыванием
+        if inherited_known:  # якщо хоч один батьківський клас "не видно" - не ризикуємо хибним спрацюванням
             missing = read_attrs - assigned_attrs - method_names - inherited_attrs - inherited_methods
             for attr in sorted(missing):
                 self.add(node, "BUG", "ATTR-MISS",
-                         f"Класс '{node.name}': 'self.{attr}' читается, но нигде в классе (и его "
-                         f"известных родителях по проекту) явно не присваивается — возможен "
-                         f"AttributeError в рантайме.")
+                         f"Клас '{node.name}': 'self.{attr}' читається, але ніде в класі (і його "
+                         f"відомих батьківських класах у проєкті) явно не присвоюється — можливий "
+                         f"AttributeError під час виконання.")
 
         if not has_init and assigned_attrs:
             self.add(node, "OOP", "NO-INIT",
-                     f"Класс '{node.name}': атрибуты создаются вне __init__ — объект может "
-                     f"оказаться в неполном/непредсказуемом состоянии в зависимости от порядка вызовов.")
+                     f"Клас '{node.name}': атрибути створюються поза __init__ — об'єкт може "
+                     f"опинитися в неповному/непередбачуваному стані залежно від порядку викликів.")
 
-        # 4. Метод не использует self -> кандидат в @staticmethod
+        # 4. Метод не використовує self -> кандидат у @staticmethod
         for m in methods:
             if m.name in ("__init__", "__new__"):
                 continue
@@ -324,29 +324,29 @@ class FileChecker(ast.NodeVisitor):
             uses_self = any(isinstance(n, ast.Name) and n.id == "self" for n in ast.walk(m))
             if not uses_self:
                 self.add(m, "OOP", "NO-SELF",
-                         f"Метод '{node.name}.{m.name}': не использует 'self' — вероятно, "
-                         f"стоит сделать его @staticmethod.")
+                         f"Метод '{node.name}.{m.name}': не використовує 'self' — імовірно, "
+                         f"варто зробити його @staticmethod.")
 
-        # 5. Множественное наследование (усложняет иерархию / MRO)
+        # 5. Множинне наслідування (ускладнює ієрархію / MRO)
         if len(node.bases) > 2:
             self.add(node, "OOP", "MULTI-INH",
-                     f"Класс '{node.name}': наследуется сразу от {len(node.bases)} классов — "
-                     f"усложняет понимание MRO (Method Resolution Order).")
+                     f"Клас '{node.name}': успадковується одразу від {len(node.bases)} класів — "
+                     f"ускладнює розуміння MRO (Method Resolution Order).")
 
-        # 6. Мутабельный class-level атрибут — расшарен между ВСЕМИ экземплярами класса
+        # 6. Змінюваний атрибут рівня класу — спільний для ВСІХ екземплярів класу
         for item in node.body:
             if isinstance(item, ast.Assign):
                 for target in item.targets:
                     if isinstance(target, ast.Name) and isinstance(item.value, (ast.List, ast.Dict, ast.Set)):
                         self.add(item, "BUG", "CLASS-MUT-ATTR",
-                                 f"Класс '{node.name}': атрибут '{target.id}' — изменяемый объект "
-                                 f"({type(item.value).__name__}), объявленный на уровне класса. "
-                                 f"Он ОДИН на все экземпляры (классическая ловушка ООП в Python), "
-                                 f"а не отдельный на каждый объект. Инициализируй его в __init__.")
+                                 f"Клас '{node.name}': атрибут '{target.id}' — змінюваний об'єкт "
+                                 f"({type(item.value).__name__}), оголошений на рівні класу. "
+                                 f"Він ОДИН на всі екземпляри (класична пастка ООП у Python), "
+                                 f"а не окремий для кожного об'єкта. Ініціалізуй його в __init__.")
 
-        # 7. Наследник переопределяет __init__, но не вызывает super().__init__().
-        # Предупреждаем, только если известно (через реестр проекта), что у родителя
-        # реально есть свой __init__ - иначе для внешних библиотек будет много шума.
+        # 7. Нащадок перевизначає __init__, але не викликає super().__init__().
+        # Попереджаємо, лише якщо відомо (через реєстр проєкту), що в батьківського класу
+        # справді є власний __init__ - інакше для зовнішніх бібліотек буде багато шуму.
         if inherited_known and "__init__" in inherited_methods and has_init:
             init_method = next(m for m in methods if m.name == "__init__")
             calls_super = any(
@@ -360,15 +360,15 @@ class FileChecker(ast.NodeVisitor):
             )
             if not calls_super:
                 self.add(init_method, "OOP", "NO-SUPER-INIT",
-                         f"Класс '{node.name}' наследуется от класса с собственным __init__, но "
-                         f"свой '__init__' не вызывает super().__init__(...) — родительская часть "
-                         f"объекта может остаться не инициализированной.")
+                         f"Клас '{node.name}' успадковується від класу з власним __init__, але "
+                         f"свій '__init__' не викликає super().__init__(...) — батьківська частина "
+                         f"об'єкта може залишитися неініціалізованою.")
 
-        # 8. __eq__ определён без __hash__ (объект станет unhashable / сломает set/dict)
+        # 8. __eq__ визначено без __hash__ (об'єкт стане unhashable / зламає set/dict)
         if "__eq__" in method_names and "__hash__" not in method_names:
             self.add(node, "OOP", "EQ-NO-HASH",
-                     f"Класс '{node.name}': определён '__eq__', но не '__hash__' — Python сделает "
-                     f"объект unhashable (сломается использование в set/dict, если раньше работало).")
+                     f"Клас '{node.name}': визначено '__eq__', але не '__hash__' — Python зробить "
+                     f"об'єкт unhashable (зламається використання в set/dict, якщо раніше працювало).")
 
     @staticmethod
     def _decorator_name(dec):
@@ -378,7 +378,7 @@ class FileChecker(ast.NodeVisitor):
             return dec.attr
         return ""
 
-    # ---------- общие проверки по всему дереву ----------
+    # ---------- загальні перевірки по всьому дереву ----------
     def check_generic_bugs(self, tree: ast.Module):
         for node in ast.walk(tree):
             self._check_bare_except(node)
@@ -391,12 +391,12 @@ class FileChecker(ast.NodeVisitor):
     def _check_bare_except(self, node):
         if isinstance(node, ast.ExceptHandler) and node.type is None:
             self.add(node, "BUG", "BARE-EXCEPT",
-                     "Голый 'except:' перехватывает вообще всё (включая KeyboardInterrupt) "
-                     "и маскирует реальные баги. Указывай конкретный тип исключения.")
+                     "Голий 'except:' перехоплює взагалі все (зокрема KeyboardInterrupt) "
+                     "і маскує справжні баги. Вказуй конкретний тип винятку.")
         elif isinstance(node, ast.ExceptHandler) and len(node.body) == 1 and isinstance(node.body[0], ast.Pass):
             self.add(node, "BUG", "EXCEPT-PASS",
-                     "'except ...: pass' молча проглатывает ошибку без логирования — "
-                     "баг может происходить постоянно, а ты никогда не узнаешь об этом.")
+                     "'except ...: pass' мовчки ковтає помилку без логування — "
+                     "баг може відбуватися постійно, а ти ніколи про це не дізнаєшся.")
 
     def _check_identity_misuse(self, node):
         if isinstance(node, ast.Compare):
@@ -405,9 +405,9 @@ class FileChecker(ast.NodeVisitor):
                     for side in (node.left, comparator):
                         if isinstance(side, ast.Constant) and not (side.value is None or isinstance(side.value, bool)):
                             self.add(node, "BUG", "IS-LITERAL",
-                                     "'is' / 'is not' используется для сравнения с литералом "
-                                     "(число/строка) — из-за интернирования в CPython результат "
-                                     "непредсказуем. Используй '==' / '!='.")
+                                     "'is' / 'is not' використовується для порівняння з літералом "
+                                     "(число/рядок) — через інтернування в CPython результат "
+                                     "непередбачуваний. Використовуй '==' / '!='.")
                             break
 
     def _check_none_compare(self, node):
@@ -415,7 +415,7 @@ class FileChecker(ast.NodeVisitor):
             for op, comparator in zip(node.ops, node.comparators):
                 if isinstance(op, (ast.Eq, ast.NotEq)) and (self._is_none(comparator) or self._is_none(node.left)):
                     self.add(node, "STYLE", "NONE-EQ",
-                             "Сравнение с None лучше делать через 'is' / 'is not', а не '==' / '!='.")
+                             "Порівняння з None краще робити через 'is' / 'is not', а не '==' / '!='.")
 
     @staticmethod
     def _is_none(n):
@@ -426,8 +426,8 @@ class FileChecker(ast.NodeVisitor):
             for op, comparator in zip(node.ops, node.comparators):
                 if isinstance(op, (ast.Eq, ast.NotEq)) and (self._is_float(comparator) or self._is_float(node.left)):
                     self.add(node, "BUG", "FLOAT-EQ",
-                             "Сравнение float через '==' ненадёжно из-за погрешностей округления "
-                             "(используй abs(a - b) < eps).")
+                             "Порівняння float через '==' ненадійне через похибки округлення "
+                             "(використовуй abs(a - b) < eps).")
 
     @staticmethod
     def _is_float(n):
@@ -441,20 +441,20 @@ class FileChecker(ast.NodeVisitor):
             target = node.name
         if target and target in BUILTIN_NAMES:
             self.add(node, "STYLE", "SHADOW-BUILTIN",
-                     f"Имя '{target}' совпадает со встроенным именем Python и переопределяет его в этой области видимости.")
+                     f"Ім'я '{target}' збігається з вбудованим ім'ям Python і перевизначає його в цій області видимості.")
 
     def _check_while_true(self, node):
         if isinstance(node, ast.While) and isinstance(node.test, ast.Constant) and node.test.value is True:
             has_break = any(isinstance(n, ast.Break) for n in ast.walk(node))
             if not has_break:
                 self.add(node, "BUG", "INF-LOOP",
-                         "'while True' без 'break' внутри тела — похоже на потенциально бесконечный цикл.")
+                         "'while True' без 'break' усередині тіла — схоже на потенційно нескінченний цикл.")
 
     def check_unused_imports(self):
         for name, lineno in self.imported_names.items():
             if name not in self.used_names:
                 self.issues.append(Issue(self.filename, lineno, "STYLE", "UNUSED-IMPORT",
-                                          f"Импорт '{name}' нигде в файле не используется."))
+                                          f"Імпорт '{name}' ніде у файлі не використовується."))
 
 
 def collect_files(paths: List[str]) -> List[str]:
@@ -469,7 +469,7 @@ def collect_files(paths: List[str]) -> List[str]:
         elif p.endswith(".py") and os.path.isfile(p):
             files.append(p)
         else:
-            print(f"Пропускаю (не .py и не директория): {p}", file=sys.stderr)
+            print(f"Пропускаю (не .py і не директорія): {p}", file=sys.stderr)
     return sorted(set(files))
 
 
@@ -478,12 +478,12 @@ def check_file(path: str, registry: dict, max_complexity: int) -> List[Issue]:
         with open(path, "r", encoding="utf-8") as f:
             source = f.read()
     except (OSError, UnicodeDecodeError) as e:
-        return [Issue(path, 0, "BUG", "READ-ERROR", f"Не удалось прочитать файл: {e}")]
+        return [Issue(path, 0, "BUG", "READ-ERROR", f"Не вдалося прочитати файл: {e}")]
 
     try:
         tree = ast.parse(source, filename=path)
     except SyntaxError as e:
-        return [Issue(path, e.lineno or 0, "BUG", "SYNTAX", f"Синтаксическая ошибка: {e.msg}")]
+        return [Issue(path, e.lineno or 0, "BUG", "SYNTAX", f"Синтаксична помилка: {e.msg}")]
 
     checker = FileChecker(path, source, registry=registry, max_complexity=max_complexity)
     checker.visit(tree)
@@ -493,7 +493,7 @@ def check_file(path: str, registry: dict, max_complexity: int) -> List[Issue]:
 
 
 def build_project_registry(files: List[str]) -> dict:
-    """Первый проход по всем файлам проекта - только сбор информации о классах."""
+    """Перший прохід по всіх файлах проєкту - лише збір інформації про класи."""
     all_infos = []
     for path in files:
         try:
@@ -501,7 +501,7 @@ def build_project_registry(files: List[str]) -> dict:
                 source = f.read()
             tree = ast.parse(source, filename=path)
         except (OSError, UnicodeDecodeError, SyntaxError):
-            continue  # проблемные файлы всё равно попадут в основной отчёт как BUG
+            continue  # проблемні файли все одно потраплять в основний звіт як BUG
         all_infos.extend(collect_class_infos(tree, path))
     return build_registry(all_infos)
 
@@ -526,10 +526,10 @@ def write_report(all_issues: List[Issue], output_path: str, files_checked: List[
 
     with open(output_path, "w", encoding="utf-8") as f:
         f.write("=" * 78 + "\n")
-        f.write("ОТЧЁТ СТАТИЧЕСКОГО АНАЛИЗА (ООП + потенциальные баги)\n")
+        f.write("ЗВІТ СТАТИЧНОГО АНАЛІЗУ (ООП + потенційні баги)\n")
         f.write("=" * 78 + "\n")
-        f.write(f"Проверено файлов:   {len(files_checked)}\n")
-        f.write(f"Найдено замечаний:  {len(all_issues)}\n\n")
+        f.write(f"Перевірено файлів:   {len(files_checked)}\n")
+        f.write(f"Знайдено зауважень:  {len(all_issues)}\n\n")
 
         for path in files_checked:
             f.write("-" * 78 + "\n")
@@ -537,7 +537,7 @@ def write_report(all_issues: List[Issue], output_path: str, files_checked: List[
             f.write("-" * 78 + "\n")
             file_issues = by_file.get(path, [])
             if not file_issues:
-                f.write("  Замечаний не найдено.\n\n")
+                f.write("  Зауважень не знайдено.\n\n")
                 continue
             for issue in file_issues:
                 f.write("  " + issue.format() + "\n")
@@ -547,31 +547,31 @@ def write_report(all_issues: List[Issue], output_path: str, files_checked: List[
         for issue in all_issues:
             counts[issue.severity] = counts.get(issue.severity, 0) + 1
         f.write("=" * 78 + "\n")
-        f.write("Итого по категориям: " + ", ".join(f"{k}={v}" for k, v in sorted(counts.items())) + "\n")
-        f.write("(BUG = вероятный логический баг, OOP = нарушение принципов ООП, STYLE = стиль)\n")
+        f.write("Разом за категоріями: " + ", ".join(f"{k}={v}" for k, v in sorted(counts.items())) + "\n")
+        f.write("(BUG = імовірний логічний баг, OOP = порушення принципів ООП, STYLE = стиль)\n")
 
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Проверка Python-кода на принципы ООП и потенциальные логические баги."
+        description="Перевірка Python-коду на принципи ООП і потенційні логічні баги."
     )
-    parser.add_argument("paths", nargs="+", help="Файлы .py и/или директории проекта для проверки.")
-    parser.add_argument("--output", "-o", default="checks.log", help="Путь к файлу отчёта (по умолчанию checks.log).")
+    parser.add_argument("paths", nargs="+", help="Файли .py та/або директорії проєкту для перевірки.")
+    parser.add_argument("--output", "-o", default="checks.log", help="Шлях до файлу звіту (за замовчуванням checks.log).")
     parser.add_argument("--json", action="store_true",
-                         help="Дополнительно сохранить отчёт в JSON рядом с --output (то же имя, расширение .json).")
+                         help="Додатково зберегти звіт у JSON поруч із --output (те саме ім'я, розширення .json).")
     parser.add_argument("--max-complexity", type=int, default=10,
-                         help="Порог цикломатической сложности функции, после которого выводится предупреждение (по умолчанию 10).")
+                         help="Поріг цикломатичної складності функції, після якого виводиться попередження (за замовчуванням 10).")
     args = parser.parse_args()
 
     files = collect_files(args.paths)
     if not files:
-        print("Не найдено ни одного .py файла по указанным путям.")
+        print("Не знайдено жодного .py файлу за вказаними шляхами.")
         sys.exit(1)
 
-    # Проход 1: строим реестр классов по всему проекту (для межфайлового анализа наследования)
+    # Прохід 1: будуємо реєстр класів по всьому проєкту (для міжфайлового аналізу наслідування)
     registry = build_project_registry(files)
 
-    # Проход 2: собственно проверки, уже с учётом реестра
+    # Прохід 2: власне перевірки, уже з урахуванням реєстру
     all_issues: List[Issue] = []
     for path in files:
         all_issues.extend(check_file(path, registry, args.max_complexity))
@@ -581,11 +581,11 @@ def main():
     if args.json:
         json_path = os.path.splitext(args.output)[0] + ".json"
         write_json_report(all_issues, json_path, files)
-        print(f"JSON-отчёт сохранён в: {json_path}")
+        print(f"JSON-звіт збережено в: {json_path}")
 
-    print(f"Проверено файлов:  {len(files)}")
-    print(f"Найдено замечаний: {len(all_issues)}")
-    print(f"Отчёт сохранён в:  {args.output}")
+    print(f"Перевірено файлів:  {len(files)}")
+    print(f"Знайдено зауважень: {len(all_issues)}")
+    print(f"Звіт збережено в:   {args.output}")
 
 
 if __name__ == "__main__":
